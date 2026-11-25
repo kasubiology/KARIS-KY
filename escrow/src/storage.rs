@@ -146,6 +146,11 @@ pub enum DataKey {
     /// Expiration timestamp for an admin-proposed legal hold awaiting guardian confirmation.
     /// Absent ⇒ no legal-hold proposal is pending. Appended to preserve existing key discriminants.
     LegalHoldProposalExpiresAt,
+    /// Protocol fee percentage in basis points (bps), applied to gross yield coupon at settlement.
+    /// Absent ⇒ 0 (no fee). Immutable after init; configured by admin.
+    /// **Fee basis:** Deducted from the gross coupon (yield), **never** from principal.
+    /// **Application point:** [`LiquifactEscrow::settle`] — transferred to treasury after settlement.
+    FeePercentage,
 }
 
 pub(crate) struct PerInvestorStorage<'a> {
