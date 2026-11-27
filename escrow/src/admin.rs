@@ -352,9 +352,16 @@ impl LiquifactEscrow {
     /// Archived escrows remain accessible but should be excluded from active-monitoring queries
     /// by off-chain indexers.
     ///
+    /// # Preconditions
+    /// Archiving a **settled** escrow (status `2`) is rejected while any investor payout remains
+    /// unclaimed: the escrow must have no outstanding investor liabilities before it can be
+    /// archived. Callers should ensure all investors have claimed via
+    /// [`LiquifactEscrow::claim_investor_payout`] (or the batch/delegate equivalents) first.
+    ///
     /// # Errors
     /// Emits [`EscrowError::ArchiveNotTerminal`] if the escrow is not in a terminal state.
-    /// Emits [`EscrowError::EscrowAlreadyArchived`] if already status `5`.
+    /// Emits [`EscrowError::ArchiveBlockedByUnclaimedPayouts`] if the escrow is settled but
+    /// investor payouts remain unclaimed.
     pub(crate) fn archive_escrow_impl(env: Env) -> InvoiceEscrow {
         let mut escrow = Self::load_escrow_require_admin(&env);
 
@@ -368,6 +375,17 @@ impl LiquifactEscrow {
             escrow.status == 2 || escrow.status == 3 || escrow.status == 4,
             EscrowError::ArchiveNotTerminal,
         );
+
+        // For settled escrows (status 2), check that all investors have claimed their payouts.
+        // Withdrawn (3) and cancelled (4) escrows have no outstanding investor liabilities.
+        if escrow.status == 2 {
+            let has_unclaimed = Self::has_unclaimed_payouts_impl(&env);
+            ensure(
+                &env,
+                !has_unclaimed,
+                EscrowError::ArchiveBlockedByUnclaimedPayouts,
+            );
+        }
 
         let prior_status = escrow.status;
         escrow.status = 5;
@@ -383,6 +401,59 @@ impl LiquifactEscrow {
         .publish(&env);
 
         escrow
+    }
+
+    /// Check if there are any unclaimed investor payouts for a settled escrow.
+    ///
+    /// Returns `true` if at least one investor funded this escrow but has not yet claimed
+    /// their payout (i.e., [`DataKey::InvestorClaimed`] is not set for them).
+    /// Returns `false` if all investors have claimed or if there are no investors.
+    ///
+    /// This helper iterates through all investors using the bucketing system to detect
+    /// unclaimed payouts efficiently without requiring a full investor list scan.
+    fn has_unclaimed_payouts_impl(env: &Env) -> bool {
+        let unique_funder_count = env
+            .storage()
+            .instance()
+            .get(&DataKey::UniqueFunderCount)
+            .unwrap_or(0);
+
+        // No investors — no unclaimed payouts
+        if unique_funder_count == 0 {
+            return false;
+        }
+
+        // Iterate through all investor buckets to find any unclaimed investor
+        for bucket_idx in 0..INVESTOR_BUCKET_COUNT {
+            let bucket: Vec<Address> = env
+                .storage()
+                .instance()
+                .get(&DataKey::InvestorContributionBucket(bucket_idx as u32))
+                .unwrap_or(Vec::new(&env));
+
+            for investor in bucket.iter() {
+                // Check if this investor has a contribution and hasn't claimed
+                let has_contribution = env
+                    .storage()
+                    .instance()
+                    .get(&DataKey::InvestorContribution(investor.clone()))
+                    .unwrap_or(0i128)
+                    > 0;
+
+                let is_claimed: bool = env
+                    .storage()
+                    .instance()
+                    .get(&DataKey::InvestorClaimed(investor.clone()))
+                    .unwrap_or(false);
+
+                // If investor has contribution but hasn't claimed, there's an unclaimed payout
+                if has_contribution && !is_claimed {
+                    return true;
+                }
+            }
+        }
+
+        false
     }
 
     pub(crate) fn get_escrow_impl(env: Env) -> InvoiceEscrow {

@@ -53,6 +53,7 @@ fn test_clone_settled_escrow_happy_path() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Fund and settle the template
@@ -131,6 +132,7 @@ fn test_clone_settled_escrow_not_settled() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Create target but don't fund/settle template
@@ -168,6 +170,7 @@ fn test_clone_settled_escrow_zero_amount() {
         &template_client.funding_token(),
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -271,6 +274,7 @@ fn test_clone_settled_escrow_template_unchanged() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let investor = Address::generate(&env);
@@ -322,6 +326,7 @@ fn test_clone_settled_escrow_then_fund() {
         &template_client.funding_token(),
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -381,6 +386,7 @@ fn test_clone_settled_escrow_then_settle() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let investor = Address::generate(&env);
@@ -428,6 +434,7 @@ fn test_clone_settled_escrow_idempotent() {
         &template_client.funding_token(),
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,

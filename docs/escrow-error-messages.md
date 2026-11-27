@@ -118,8 +118,8 @@ See also [`docs/escrow-legal-hold.md`](escrow-legal-hold.md),
 | 107 | `UniqueInvestorCapReached` | `fund`, `fund_with_commitment` | new investor and `unique funder count >= max_unique_investors` | Cap reached; wait or use existing investor | typed |
 | 108 | `TieredSecondDeposit` | `fund_with_commitment` | investor already has principal and calls `fund_with_commitment` again | Use `fund()` for additional principal | typed |
 | 109 | `InvestorClaimTimeOverflow` | `fund_with_commitment` | `timestamp + lock_secs` overflows | Reduce lock duration | typed |
-| 110 | `FundedAmountOverflow` | `fund`, `fund_with_commitment`, `batch_fund` | `funded_amount + amount` overflows | Reduce deposit size | typed |
-| 111 | `CommitmentLockExceedsMaturity` | `fund_with_commitment` | `now + committed_lock_secs > maturity` (when maturity > 0) | Shorten lock or extend maturity before deposit | typed |
+| 110 | `FundedAmountOverflow` | `fund`, `fund_with_commitment`, `fund_batch` | `funded_amount + amount` overflows | Reduce deposit size | typed |
+| 111 | `CommitmentLockExceedsMaturity` | `fund_with_commitment` | `claim_not_before > escrow.maturity` (when maturity > 0); boundary is **inclusive**: `claim_not_before == maturity` is allowed | Shorten lock or extend maturity before deposit | typed |
 | 120 | `LegalHoldBlocksSettlement` | `settle` | legal hold active | Complete legal-hold clear workflow | typed |
 | 121 | `SettlementNotFunded` | `settle` | escrow status `!= 1` (funded) | Fund escrow before settlement | typed |
 | 122 | `MaturityNotReached` | `settle` | `ledger.timestamp() < maturity` (when maturity > 0) | Wait until maturity timestamp | typed |

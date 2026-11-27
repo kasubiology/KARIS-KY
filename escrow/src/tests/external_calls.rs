@@ -229,6 +229,7 @@ fn setup_cancelled_with_token<'a>(
         &None,
         &None,
         &None,
+        &None,
     );
     // Mint tokens into the contract to simulate on-chain custody
     token.stellar.mint(&client.address, &fund_amount);
@@ -310,6 +311,7 @@ fn sweep_liability_floor_allows_sweep_of_excess_above_outstanding() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Mint 1001 into contract: 500 for A, 500 for B, 1 dust
@@ -359,6 +361,7 @@ fn sweep_liability_floor_blocks_sweep_that_would_eat_into_outstanding() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     token.stellar.mint(&client.address, &1_001i128);
@@ -391,6 +394,7 @@ fn sweep_liability_floor_zero_funded_amount_allows_sweep() {
         &token.id,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -440,6 +444,7 @@ fn distributed_principal_accumulates_across_multiple_refunds() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     token.stellar.mint(&client.address, &900i128);
@@ -463,4 +468,92 @@ fn distributed_principal_accumulates_across_multiple_refunds() {
     token.stellar.mint(&client.address, &5i128);
     let swept = client.sweep_terminal_dust(&5i128);
     assert_eq!(swept, 5i128);
+}
+
+/// Verify that `sweep_terminal_dust` enforces the liability floor invariant
+/// (funded_amount - distributed_principal) even during partial refunds.
+///
+/// This test demonstrates that the liability floor holds across both endpoints:
+/// 1. Partial refunds → outstanding liabilities remain → sweep blocked
+/// 2. Complete refunds → no outstanding liabilities → sweep allowed
+///
+/// **Scenario:**
+/// - Three investors fund 300 each (total funded_amount = 900)
+/// - Escrow is cancelled
+/// - Investor A refunds (distributed = 300, outstanding = 600)
+/// - Attempt to sweep 500 when balance = 600 → blocked (would leave balance 100 < outstanding 600)
+/// - Investors B and C refund (distributed = 900, outstanding = 0)
+/// - Sweep 500 → succeeds (no constraints when outstanding = 0)
+#[test]
+fn test_sweep_terminal_dust_respects_liability_floor_during_partial_refunds() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (client, admin, sme) = setup(&env);
+    let inv_a = Address::generate(&env);
+    let inv_b = Address::generate(&env);
+    let inv_c = Address::generate(&env);
+    let token = install_stellar_asset_token(&env);
+    let treasury = Address::generate(&env);
+
+    client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "FLOOR_SWEEP"),
+        &sme,
+        &1_800i128,
+        &0i64,
+        &0u64,
+        &token.id,
+        &None,
+        &treasury,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    );
+
+    token.stellar.mint(&client.address, &900i128);
+    client.fund(&inv_a, &300i128);
+    client.fund(&inv_b, &300i128);
+    client.fund(&inv_c, &300i128);
+
+    // Verify funded_amount
+    assert_eq!(client.get_escrow().funded_amount, 900i128);
+
+    client.cancel_funding();
+
+    // Partial refund: inv_a gets 300 back
+    client.refund(&inv_a);
+    let distributed = client.get_distributed_principal();
+    assert_eq!(distributed, 300i128);
+
+    // outstanding = 900 - 300 = 600
+    // balance = 900 - 300 = 600
+    // Attempting to sweep 500 would leave balance = 100, but outstanding = 600
+    // This should fail: 100 < 600
+    let result = client.try_sweep_terminal_dust(&500i128);
+    assert!(result.is_err());
+
+    // Now refund inv_b: distributed = 600, outstanding = 300
+    // balance = 600 - 300 = 300
+    client.refund(&inv_b);
+    assert_eq!(client.get_distributed_principal(), 600i128);
+
+    // Attempting to sweep 100 would leave balance = 200, but outstanding = 300
+    // This should fail: 200 < 300
+    let result = client.try_sweep_terminal_dust(&100i128);
+    assert!(result.is_err());
+
+    // Refund inv_c: distributed = 900, outstanding = 0
+    // balance = 300 - 300 = 0
+    client.refund(&inv_c);
+    assert_eq!(client.get_distributed_principal(), 900i128);
+
+    // Mint fresh dust and sweep: outstanding = 0, so sweep succeeds
+    token.stellar.mint(&client.address, &500i128);
+    let swept = client.sweep_terminal_dust(&500i128);
+    assert_eq!(swept, 500i128);
 }

@@ -596,21 +596,23 @@ export class EscrowClient {
   }
 
   /**
-   * Batch fund multiple investors in a single atomic transaction (FEAT-001).
-   *
-   * Identical per-entry semantics to {@link fund} — each entry requires the investor's
-   * authorization and is validated against the same caps and allowlists. If any single
-   * entry fails the entire transaction reverts.
-   *
-   * Emits one {@code BatchFundCompleted} summary event after all entries succeed, in
-   * addition to the per-entry {@code EscrowFunded} / {@code FundReceived} events.
-   *
-   * @param contributions Array of [investor_address, amount] tuples; max 50 entries.
-   * @param source Optional source account for fee payment.
-   * @returns Updated {@link InvoiceEscrow} state.
+   * Canonical batch funding entrypoint: record multiple investor principals in a single call.
+   * 
+   * This is the **canonical** batch funding interface for multi-investor submissions.
+   * All batch funding requests must use this method to prevent implementation drift.
+   * 
+   * @param entries Array of `[investor_address, amount_in_base_units]` tuples.
+   *                 Must be non-empty and contain at most 50 entries.
+   * @param source Optional source address for the transaction.
+   * @returns Updated escrow state after all entries are applied.
+   * @throws EscrowError::FundingBatchEmpty if entries is empty.
+   * @throws EscrowError::FundingBatchTooLarge if entries.length > 50.
+   * @throws Per-entry errors from fund() for validation failures.
+   * 
+   * Auth: Per-investor authorization required for each entry.
    */
-  async batchFund(
-    contributions: Array<[string, string]>,
+  async fundBatch(
+    entries: Array<[string, string]>,
     source?: string,
   ): Promise<InvoiceEscrow> {
     return this.invoke("batch_fund", [contributions], source);

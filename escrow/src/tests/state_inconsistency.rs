@@ -39,6 +39,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let report = client.detect_state_inconsistencies();
@@ -83,6 +84,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Fund with amount > target (600 > 500)
@@ -121,6 +123,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Fund with small amount
@@ -159,6 +162,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Fund - increments unique_funder_count
@@ -197,6 +201,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Fund partially - triggers multiple inconsistencies
@@ -234,6 +239,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let report = client.detect_state_inconsistencies();
@@ -275,6 +281,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Call detect_state_inconsistencies multiple times
@@ -323,6 +330,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Fund exactly to target (should auto-advance to funded)

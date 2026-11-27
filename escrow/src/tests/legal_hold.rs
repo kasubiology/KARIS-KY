@@ -53,6 +53,7 @@ fn init_open(
         &None,
         &None,
         &None,
+        &None,
     );
     (token, treasury)
 }
@@ -83,6 +84,7 @@ fn init_open_with_clear_delay(
         &None,
         &None,
         &legal_hold_clear_delay,
+        &None,
         &None,
         &None,
         &None,
@@ -159,6 +161,7 @@ fn init_funded_with_real_token<'a>(
         &None,
         &None,
         &None,
+        &None,
     );
     client.fund(investor, &TARGET);
     sac_admin.mint(&escrow_id, &TARGET);
@@ -202,6 +205,7 @@ fn init_settled<'a>(
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -907,4 +911,224 @@ fn single_hold_blocks_all_gated_ops() {
         }));
         assert!(r.is_err(), "sweep must be blocked under hold");
     }
+}
+
+// ── 16. Guardian-based legal hold (propose / confirm flow) ──────────────────
+
+/// Test that init fails when guardian == admin (error 213).
+#[test]
+#[should_panic]
+fn init_with_guardian_same_as_admin_fails() {
+    let env = Env::default();
+    let (client, admin, sme) = setup(&env);
+    let token = Address::generate(&env);
+    let treasury = Address::generate(&env);
+    
+    // Try to init with guardian == admin (should fail with error 213)
+    client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "GDN001"),
+        &sme,
+        &TARGET,
+        &800i64,
+        &0u64,
+        &token,
+        &None,
+        &treasury,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(admin.clone()), // Guardian same as admin: should panic with 213
+    );
+}
+
+/// Test that init succeeds when guardian is distinct from admin.
+#[test]
+fn init_with_valid_guardian_succeeds() {
+    let env = Env::default();
+    let (client, admin, sme) = setup(&env);
+    let token = Address::generate(&env);
+    let treasury = Address::generate(&env);
+    let guardian = Address::generate(&env);
+    
+    let escrow = client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "GDN002"),
+        &sme,
+        &TARGET,
+        &800i64,
+        &0u64,
+        &token,
+        &None,
+        &treasury,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(guardian), // Valid distinct guardian
+    );
+    
+    assert_eq!(escrow.admin, admin);
+    assert_eq!(escrow.sme_address, sme);
+}
+
+/// Test two-phase legal hold flow: guardian proposes, admin confirms.
+#[test]
+fn propose_and_confirm_legal_hold_succeeds() {
+    let env = Env::default();
+    let (client, admin, sme) = setup(&env);
+    let token = Address::generate(&env);
+    let treasury = Address::generate(&env);
+    let guardian = Address::generate(&env);
+    
+    client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "GDN003"),
+        &sme,
+        &TARGET,
+        &800i64,
+        &0u64,
+        &token,
+        &None,
+        &treasury,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(guardian.clone()),
+    );
+    
+    // Guardian proposes the hold
+    client.propose_legal_hold(&String::from_str(&env, "suspected fraud"));
+    
+    // Admin confirms the hold
+    client.confirm_legal_hold();
+    
+    // Verify that the hold is now active
+    assert!(client.get_legal_hold());
+}
+
+/// Test that guardian can propose but only admin can confirm.
+#[test]
+#[should_panic]
+fn non_guardian_cannot_propose_legal_hold() {
+    let env = Env::default();
+    let (client, admin, sme) = setup(&env);
+    let token = Address::generate(&env);
+    let treasury = Address::generate(&env);
+    let guardian = Address::generate(&env);
+    
+    client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "GDN004"),
+        &sme,
+        &TARGET,
+        &800i64,
+        &0u64,
+        &token,
+        &None,
+        &treasury,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(guardian),
+    );
+    
+    // Non-guardian tries to propose (should panic due to auth failure)
+    env.mock_auths(&[]);
+    client.propose_legal_hold(&String::from_str(&env, "suspected fraud"));
+}
+
+/// Test that without guardian, admin can directly propose and confirm.
+#[test]
+fn without_guardian_admin_can_propose_and_confirm() {
+    let env = Env::default();
+    let (client, admin, sme) = setup(&env);
+    let token = Address::generate(&env);
+    let treasury = Address::generate(&env);
+    
+    client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "GDN005"),
+        &sme,
+        &TARGET,
+        &800i64,
+        &0u64,
+        &token,
+        &None,
+        &treasury,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None, // No guardian
+    );
+    
+    // Admin proposes the hold (since there's no guardian)
+    client.propose_legal_hold(&String::from_str(&env, "compliance check"));
+    
+    // Admin confirms the hold
+    client.confirm_legal_hold();
+    
+    // Verify that the hold is now active
+    assert!(client.get_legal_hold());
+}
+
+/// Test that hold becomes effective after confirm, blocking fund.
+#[test]
+#[should_panic]
+fn legal_hold_blocks_fund_after_confirm() {
+    let env = Env::default();
+    let (client, admin, sme) = setup(&env);
+    let token = Address::generate(&env);
+    let treasury = Address::generate(&env);
+    let guardian = Address::generate(&env);
+    let investor = Address::generate(&env);
+    
+    client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "GDN006"),
+        &sme,
+        &TARGET,
+        &800i64,
+        &0u64,
+        &token,
+        &None,
+        &treasury,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &Some(guardian),
+    );
+    
+    // Guardian proposes, admin confirms
+    client.propose_legal_hold(&String::from_str(&env, "investigation"));
+    client.confirm_legal_hold();
+    
+    // Verify hold is active
+    assert!(client.get_legal_hold());
+    
+    // Attempt to fund should be blocked
+    client.fund(&investor, &TARGET);
 }

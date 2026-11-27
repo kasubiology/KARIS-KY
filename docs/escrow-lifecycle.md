@@ -107,19 +107,117 @@ let result = batch_fund(entries); // All three funded in one call
 
 ---
 
-## Forbidden transitions (must panic)
+## Archive path (status 5 — archived)
 
-| From | To | Reason |
-|------|----|--------|
-| `0` (open) | `1` (funded) | Must reach funding target first |
-| `0` (open) | `2` (settled) | Escrow must be funded first |
-| `0` (open) | `3` (withdrawn) | Escrow must be funded first |
-| `1` (funded) | `0` (open) | Status never regresses |
-| `1` (funded) | `4` (cancelled) | `cancel_funding` only allowed in Open state |
-| `2` (settled) | any | Status never regresses from terminal |
-| `3` (withdrawn) | any | Status never regresses from terminal |
-| `4` (cancelled) | any | Status never regresses from terminal |
-| `5` (archived) | any | Status never regresses from archived |
+Archiving marks a terminal escrow as closed and removes it from active-monitoring indices.
+
+### Why archive?
+
+Escrows in terminal states (settled, withdrawn, or cancelled) are immutable and do not require
+real-time monitoring. Archiving signals to off-chain indexers that the escrow can be moved to
+cold storage or excluded from active dashboards. The escrow remains readable on-chain but is
+flagged as closed.
+
+### Preconditions
+
+**Archiving is only permitted from terminal states:**
+- `2` (settled) ✓
+- `3` (withdrawn) ✓
+- `4` (cancelled) ✓
+- `0` (open) ✗ — rejects with `EscrowError::ArchiveNotTerminal`
+- `1` (funded) ✗ — rejects with `EscrowError::ArchiveNotTerminal`
+
+**For settled escrows (status 2), all investor payouts must be claimed:**
+- If any investor funded the escrow but has not yet called `claim_investor_payout()`,
+  archiving is rejected with `EscrowError::ArchiveBlockedByUnclaimedPayouts`
+- Withdrawn (status 3) and cancelled (status 4) escrows have no investor payouts,
+  so this check does not apply
+
+### Authorization
+
+Admin authorization is required. The admin calls `archive_escrow()` only after verifying
+that all investors have claimed (or after confirming that no investor payouts remain outstanding
+for withdrawn/cancelled escrows).
+
+### Idempotency and irreversibility
+
+**Idempotent:** Calling `archive_escrow()` on an already-archived escrow (status 5) is a no-op
+and does not panic; status remains `5`.
+
+**Irreversible:** Once archived, the escrow status is permanent. No operation (other than
+archive itself) can change status back to `2`, `3`, or `4`. The state machine forbids regressions.
+
+### Mutation blocking
+
+After archiving, **all state-mutating entrypoints are rejected:**
+
+| Function | After archive (status 5) | Reason |
+|----------|--------------------------|--------|
+| `fund()` | ✗ Panics | Requires `status == 0` |
+| `settle()` | ✗ Panics | Requires `status == 1` |
+| `withdraw()` | ✗ Panics | Requires `status == 1` |
+| `claim_investor_payout()` | ✗ Panics (may idempotent after prior claim) | Requires `status == 2` or above; may be no-op if already claimed |
+| `cancel_funding()` | ✗ Panics | Requires `status == 0` |
+| `rotate_beneficiary()` | ✗ Panics | Requires `status == 0` or `1` |
+| `set_legal_hold()` | ✗ Panics | Escrow is in terminal state |
+| `sweep_terminal_dust()` | ✓ Allowed | `status == 5` is terminal; dust sweep is a privileged treasury operation |
+
+### Read-only operations (always allowed)
+
+After archiving, all read-only operations continue to work:
+
+| Function | After archive |
+|----------|---------------|
+| `get_escrow()` | ✓ Returns full escrow snapshot with `status == 5` |
+| `get_funding_stats()` | ✓ Includes `status == 5` |
+| `claim_investor_payout()` | ✓ Idempotent if investor already claimed; panics if not |
+| `get_investor_history()` | ✓ Includes all settlement events prior to archive |
+| `get_funding_close_snapshot()` | ✓ Reflects funding close state |
+| `compute_investor_payout()` | ✓ Computes share on historical data |
+
+---
+
+## Archive event
+
+When `archive_escrow()` succeeds, an `EscrowArchived` event is emitted:
+
+```rust
+pub struct EscrowArchived {
+    pub name: Symbol,                              // = "esc_arch"
+    pub invoice_id: Symbol,                        // Escrow's invoice ID
+    pub prior_status: u32,                         // Status before archiving (2, 3, or 4)
+    pub archived_at_ledger_timestamp: u64,         // Ledger timestamp at archival
+}
+```
+
+---
+
+## State transition test matrix
+
+This matrix summarizes all valid and forbidden transitions for quick reference:
+
+| From | To | Via | Allowed? | Reason |
+|------|----|----|----------|--------|
+| 0 | 0 | — | ✗ | No self-loop; must fund or cancel |
+| 0 | 1 | `fund()` | ✓ | Funded target reached |
+| 0 | 2 | — | ✗ | Must fund first |
+| 0 | 3 | — | ✗ | Must fund first |
+| 0 | 4 | `cancel_funding()` | ✓ | Admin gates; no legal hold |
+| 0 | 5 | — | ✗ | Must be terminal first |
+| 1 | 0 | — | ✗ | No regression |
+| 1 | 1 | — | ✗ | No self-loop |
+| 1 | 2 | `settle()` | ✓ | Maturity gate (if set) + SME auth + no hold |
+| 1 | 3 | `withdraw()` | ✓ | SME auth + no hold |
+| 1 | 4 | — | ✗ | `cancel_funding` only in `0` |
+| 1 | 5 | — | ✗ | Must be terminal first |
+| 2 | 0–4 | — | ✗ | No regression from terminal |
+| 2 | 5 | `archive_escrow()` | ✓ | Admin auth; all investor payouts claimed |
+| 3 | 0–4 | — | ✗ | No regression from terminal |
+| 3 | 5 | `archive_escrow()` | ✓ | Admin auth; no payouts outstanding |
+| 4 | 0–3 | — | ✗ | No regression from terminal |
+| 4 | 5 | `archive_escrow()` | ✓ | Admin auth; no payouts outstanding |
+| 5 | 0–4 | — | ✗ | No regression from archived |
+| 5 | 5 | `archive_escrow()` | ✓ | Idempotent no-op |
 
 ---
 
@@ -294,6 +392,49 @@ When `maturity > 0`:
 - When `maturity == 0`: `settle()` succeeds immediately (no time gate)
 
 `withdraw()` does **not** check maturity; it is a pull model for SME liquidity.
+
+### Ledger-Timestamp Basis (Critical for Operators)
+
+**All maturity checks are strictly against the validator-observed ledger timestamp** (`env.ledger().timestamp()`), 
+not wall-clock time or any off-chain clock. This is **the single source of truth** for settlement eligibility:
+
+```rust
+// In settle_impl:
+let now = env.ledger().timestamp();  // ← Validator-observed timestamp (UTC seconds)
+if escrow.maturity > 0 {
+    if now < escrow.maturity {
+        fail(..., EscrowError::MaturityNotReached);  // Code 122
+    }
+}
+```
+
+#### Boundary Behavior
+
+**Maturity timestamp is _inclusive_:**
+- `ledger_timestamp == maturity` → Settlement **succeeds** ✓
+- `ledger_timestamp == maturity - 1` → Settlement **fails** with error code 122 ✗
+
+**Tests confirming boundary:**
+- `settle_one_second_before_maturity_traps_and_preserves_state()` — confirms rejection before boundary
+- `settle_at_maturity_succeeds()` — confirms success at exact timestamp
+- `settle_one_second_after_maturity_succeeds()` — confirms success after boundary
+
+#### Implications for Operators
+
+1. **Off-chain tooling must use the same ledger timestamp**, not local system clocks
+2. When comparing on-chain maturity to external systems (indexers, dashboards, monitoring), 
+   use the **Stellar ledger timestamp**, not UTC wall-clock
+3. Clock skew across systems can cause confusion; always refer to the escrow contract's 
+   `env.ledger().timestamp()` as the authoritative source
+4. The maturity timestamp is set at initialization and is **immutable** (admin-only extensions 
+   require explicit timelock and guardian confirmation via `propose_maturity_extension` / `confirm_maturity_extension`)
+
+#### `partial_settle` Maturity Behavior
+
+The maturity gate also applies to partial settlements:
+- `partial_settle(amount)` with `maturity > 0` enforces `env.ledger().timestamp() >= escrow.maturity`
+- Once maturity is reached, **all further settlements** (full or partial) succeed without time gates
+- Partial settlements do **not** reset or modify the maturity timestamp
 
 ---
 

@@ -264,6 +264,8 @@ fn test_e2e_multiple_investors() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     // Three investors: 40%, 35%, 25%
@@ -361,6 +363,8 @@ fn test_e2e_overfunding() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     let inv_a = Address::generate(&env);
@@ -421,6 +425,8 @@ fn test_e2e_cancellation_and_refund() {
         &token_id,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -492,6 +498,8 @@ fn test_e2e_legal_hold_lifecycle() {
         &token_id,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -578,6 +586,8 @@ fn test_e2e_admin_handover() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     // Fund to target
@@ -642,6 +652,8 @@ fn test_e2e_funding_deadline() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     // Fund before deadline — succeeds
@@ -683,6 +695,8 @@ fn test_e2e_cap_enforcement() {
         &None,
         &Some(10_000i128), // min contribution
         &Some(2u32),       // max 2 unique investors
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -737,6 +751,8 @@ fn test_e2e_sme_collateral() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -816,6 +832,8 @@ fn test_e2e_tiered_yield() {
         &None,
         &treasury,
         &Some(tiers),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -922,6 +940,8 @@ fn test_e2e_asset_custody_verification() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     // Verify before funding — funded_amount is 0
@@ -963,6 +983,8 @@ fn test_e2e_allowlist_lifecycle() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1041,6 +1063,8 @@ fn test_e2e_dust_sweep_after_settlement() {
         &token_id,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,

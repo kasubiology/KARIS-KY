@@ -28,6 +28,8 @@ fn test_update_maturity_success() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     // Extensions now require the propose/confirm flow; shortening stays immediate.
     client.propose_maturity_extension(&2000u64);
@@ -60,6 +62,8 @@ fn test_update_maturity_wrong_state() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.fund(&investor, &1_000i128);
     client.propose_maturity_extension(&2000u64);
@@ -83,6 +87,8 @@ fn test_update_maturity_unauthorized() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -287,6 +293,8 @@ fn test_verify_asset_custody_reports_signed_discrepancy() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     client.fund(&investor, &1_000i128);
@@ -325,6 +333,8 @@ fn test_propose_admin_sets_pending_without_changing_admin() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     let pending = client.propose_admin(&new_admin);
     assert_eq!(pending, new_admin);
@@ -347,6 +357,8 @@ fn test_accept_admin_promotes_pending_and_clears_pending() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -388,6 +400,8 @@ fn test_transfer_admin_deprecated_shim_only_proposes() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     let unchanged = client.transfer_admin(&new_admin);
@@ -410,6 +424,8 @@ fn test_transfer_admin_same_address_panics() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -622,6 +638,8 @@ fn test_read_model_summary_includes_optional_admin_fields() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     let summary = client.get_escrow_summary();
@@ -650,6 +668,8 @@ fn test_record_collateral_stored_and_does_not_block_settle() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -700,6 +720,8 @@ fn test_collateral_zero_panics() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.record_sme_collateral_commitment(
         &symbol_short!("XLM"),
@@ -723,6 +745,8 @@ fn test_collateral_requires_sme_auth() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -794,6 +818,8 @@ fn test_legal_hold_blocks_settle_withdraw_claim_and_fund() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.fund(&investor, &TARGET);
     client.set_legal_hold(&true, &String::from_str(&env, "compliance"));
@@ -849,6 +875,8 @@ fn test_legal_hold_blocks_new_funds_when_open() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.set_legal_hold(&true);
     client.fund(&investor, &1i128);
@@ -893,6 +921,8 @@ fn test_update_funding_target_by_admin_succeeds() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     let updated = client.update_funding_target(&10_000i128);
@@ -920,6 +950,8 @@ fn test_update_funding_target_by_non_admin_panics() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -964,6 +996,8 @@ fn test_update_funding_target_fails_when_funded() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.fund(&investor, &5_000i128);
     client.update_funding_target(&10_000i128);
@@ -999,6 +1033,8 @@ fn test_update_funding_target_below_funded_panics() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.fund(&investor, &4_000i128);
     client.update_funding_target(&3_000i128);
@@ -1025,6 +1061,8 @@ fn test_update_funding_target_zero_panics() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1073,6 +1111,8 @@ fn test_update_funding_target_event_fields() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     client.update_funding_target(&9_000i128);
@@ -1113,6 +1153,8 @@ fn test_update_funding_target_fails_when_settled() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1171,6 +1213,8 @@ fn test_update_funding_target_equal_to_funded_amount_succeeds() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.fund(&investor, &4_000i128); // funded_amount == 4_000, status still 0
 
@@ -1203,6 +1247,8 @@ fn test_update_funding_target_negative_panics() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1244,6 +1290,8 @@ fn test_update_maturity_event_fields() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1303,6 +1351,8 @@ fn test_update_maturity_fails_when_funded() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.fund(&investor, &5_000i128); // status → 1 (funded)
     client.propose_maturity_extension(&2000u64);
@@ -1332,6 +1382,8 @@ fn test_update_maturity_fails_when_settled() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1388,6 +1440,8 @@ fn test_update_maturity_to_zero_succeeds() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     let updated = client.update_maturity(&0u64);
     assert_eq!(updated.maturity, 0u64);
@@ -1418,6 +1472,8 @@ fn test_settle_passes_exactly_at_maturity_ledger_time() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1467,6 +1523,8 @@ fn test_settle_fails_one_second_before_maturity() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     client.fund(&investor, &5_000i128);
 
@@ -1497,6 +1555,8 @@ fn test_update_maturity_twice_overwrites() {
         &token,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1686,6 +1746,8 @@ fn auth_audit_sweep_terminal_dust_requires_treasury() {
         &token.id,
         &None,
         &treasury,
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -1892,6 +1954,8 @@ fn test_rotate_beneficiary_then_withdraw_goes_to_new_sme() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
     token.stellar.mint(&investor, &TARGET);
     token.stellar.approve(
@@ -1936,6 +2000,8 @@ fn test_208_initial_record_timestamps_equal() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     let commitment = client.record_sme_collateral_commitment(&symbol_short!("GOLD"), &5000i128);
@@ -1966,6 +2032,8 @@ fn test_208_update_preserves_recorded_at_and_advances_updated_at() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -2023,6 +2091,8 @@ fn test_208_update_allowed_before_settlement() {
         &None,
         &None,
         &None,
+        &None,
+        &None,
     );
 
     // Record while open (status 0).
@@ -2057,6 +2127,8 @@ fn test_208_update_blocked_after_settlement() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -2107,6 +2179,8 @@ fn test_208_first_record_on_settled_escrow_is_allowed() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
+        &None,
         &None,
         &None,
         &None,
@@ -3491,4 +3565,107 @@ fn test_upgrade_rejects_arbitrary_invalid_wasm_hash() {
         result.is_err(),
         "upgrade with arbitrary invalid WASM hash must fail predictably, not trap"
     );
+}
+
+/// Verify that `update_funding_target` enforces the liability floor invariant:
+/// target must not be lowered below `funded_amount - distributed_principal`.
+///
+/// This test demonstrates the shared liability floor between:
+/// 1. `update_funding_target` (enforces floor at status 0)
+/// 2. `sweep_terminal_dust` (enforces floor at status 4)
+///
+/// **Scenario:**
+/// - Initialize escrow with target 10,000
+/// - Fund with 5,000 from two investors (total funded_amount = 5,000)
+/// - Attempt to lower target below 5,000 → rejected (TargetBelowFundedAmount = 74)
+/// - Set target to 5,000 → succeeds (at the floor)
+/// - Set target to 6,000 → succeeds (above the floor)
+///
+/// This invariant ensures that if the escrow is later cancelled and investors
+/// refund partially, the balance will always cover outstanding claims.
+#[test]
+#[should_panic(expected = "TargetBelowFundedAmount")]
+fn test_update_funding_target_respects_liability_floor() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (client, admin, sme) = setup(&env);
+    let inv_a = Address::generate(&env);
+    let inv_b = Address::generate(&env);
+
+    client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "FLOOR01"),
+        &sme,
+        &10_000i128,
+        &800i64,
+        &0u64,
+        &Address::generate(&env),
+        &None,
+        &Address::generate(&env),
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    );
+
+    // Both investors contribute equally: total funded = 5,000
+    client.fund(&inv_a, &2_500i128);
+    client.fund(&inv_b, &2_500i128);
+
+    // Verify funded_amount constraint: cannot lower target below funded amount
+    assert_eq!(client.get_escrow().funded_amount, 5_000i128);
+
+    // This must fail: target (3,000) < liability_floor (5,000 - 0 = 5,000)
+    client.update_funding_target(&3_000i128);
+}
+
+/// Verify that after lowering to the liability floor, we can set the target
+/// to exactly the funded amount or higher.
+#[test]
+fn test_update_funding_target_at_and_above_liability_floor() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let (client, admin, sme) = setup(&env);
+    let inv_a = Address::generate(&env);
+    let inv_b = Address::generate(&env);
+
+    client.init(
+        &admin,
+        &soroban_sdk::String::from_str(&env, "FLOOR02"),
+        &sme,
+        &10_000i128,
+        &800i64,
+        &0u64,
+        &Address::generate(&env),
+        &None,
+        &Address::generate(&env),
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    );
+
+    // Fund with 4,500 total
+    client.fund(&inv_a, &2_000i128);
+    client.fund(&inv_b, &2_500i128);
+    assert_eq!(client.get_escrow().funded_amount, 4_500i128);
+
+    // Setting to exactly the liability floor (4,500) succeeds
+    let updated = client.update_funding_target(&4_500i128);
+    assert_eq!(updated.funding_target, 4_500i128);
+
+    // Setting above the floor (5,000) succeeds
+    let updated = client.update_funding_target(&5_000i128);
+    assert_eq!(updated.funding_target, 5_000i128);
+
+    // Verify status is still open (0)
+    assert_eq!(updated.status, 0);
 }

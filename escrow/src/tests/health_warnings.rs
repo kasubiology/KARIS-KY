@@ -30,6 +30,7 @@ fn test_health_warning_low_funding_ratio() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Fund only 40% of target => should trigger low funding ratio warning
@@ -69,6 +70,7 @@ fn test_health_warning_close_to_maturity() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -122,6 +124,7 @@ fn test_health_warning_low_funding_close_to_maturity() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Fund only 40%
@@ -157,6 +160,7 @@ fn test_health_warning_over_maturity_unfunded() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -206,6 +210,7 @@ fn test_no_health_warning_healthy_escrow() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Fund to 100%
@@ -237,6 +242,7 @@ fn test_no_health_warning_no_maturity_constraint() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -332,6 +338,7 @@ fn test_no_health_warning_settled_escrow() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,

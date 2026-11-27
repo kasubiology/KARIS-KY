@@ -281,6 +281,13 @@ pub enum EscrowError {
     LegalHoldAlreadyActive = 212,
     /// The configured legal-hold guardian must be distinct from the escrow admin.
     LegalHoldGuardianSameAsAdmin = 213,
+
+    /// [`LiquifactEscrow::archive_escrow`] called on an escrow not in a terminal state.
+    /// Only status 2 (settled), 3 (withdrawn), or 4 (cancelled) can be archived.
+    ArchiveNotTerminal = 214,
+    /// [`LiquifactEscrow::archive_escrow`] blocked by unclaimed investor payouts.
+    /// All investors must claim before archiving a settled escrow.
+    ArchiveBlockedByUnclaimedPayouts = 215,
 }
 
 #[inline(always)]

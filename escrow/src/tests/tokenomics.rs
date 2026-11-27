@@ -92,6 +92,7 @@ proptest! {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Single investor funds to target (no overfunding).
@@ -154,6 +155,7 @@ proptest! {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let mut investors = Vec::new();
@@ -222,6 +224,7 @@ proptest! {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let mut investors = Vec::new();
@@ -310,6 +313,7 @@ proptest! {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let investor = Address::generate(&env);
@@ -380,6 +384,7 @@ proptest! {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let mut investors = Vec::new();
@@ -442,6 +447,7 @@ proptest! {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let mut investors = Vec::new();
@@ -527,6 +533,7 @@ proptest! {
             &None,
             &None,
             &None,
+        &None,
         );
 
         client.fund(&investor, &total_funded);
@@ -592,6 +599,7 @@ proptest! {
             &None,
             &None,
             &None,
+        &None,
         );
 
         client.fund(&investor_a, &contrib_a);
@@ -650,6 +658,7 @@ fn test_yield_lifecycle_complete() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,

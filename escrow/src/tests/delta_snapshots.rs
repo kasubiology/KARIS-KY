@@ -31,6 +31,7 @@ fn test_delta_chain_basic_creation() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Get initial state
@@ -79,6 +80,7 @@ fn test_delta_reconstruction_after_settle() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Fund
@@ -118,6 +120,7 @@ fn test_multiple_deltas_state_transitions() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -172,6 +175,7 @@ fn test_delta_on_beneficiary_rotation() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     client.fund(&investor, &TARGET);
@@ -209,6 +213,7 @@ fn test_delta_storage_concept() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -258,6 +263,7 @@ fn test_backward_compat_no_deltas_required() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     client.fund(&investor, &TARGET);
@@ -288,6 +294,7 @@ fn test_delta_immutability() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -333,6 +340,7 @@ fn test_escrow_consistency_multiple_ops() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,

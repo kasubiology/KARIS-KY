@@ -49,6 +49,7 @@ fn setup_multi_investor_settled(
         &None,
         &None,
         &None,
+        &None,
     );
 
     let mut investors = Vec::new(env);
@@ -164,6 +165,7 @@ fn batch_claim_before_settle_panics() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let investor = Address::generate(&env);
@@ -196,6 +198,7 @@ fn merkle_root_stored_at_funding_close() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -240,6 +243,7 @@ fn merkle_root_absent_before_funding_close() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Not yet funded — Merkle root absent.
@@ -265,6 +269,7 @@ fn verify_investor_proof_fails_without_root() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -298,6 +303,7 @@ fn merkle_root_survives_settle() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -597,6 +603,7 @@ fn benchmark_snapshot_size_scaling() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,

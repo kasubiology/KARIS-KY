@@ -73,6 +73,8 @@ can_claim = (escrow.status == Settled) AND (ledger.timestamp() >= claim_not_befo
 
 If you try to claim before your lock expires, the contract returns error code **128** (`InvestorCommitmentLockNotExpired`).
 
+**Boundary:** The lock can expire exactly at maturity. If your lock duration means `claim_not_before == maturity`, you can claim at that exact boundary time (after settlement). The contract only rejects locks that would extend **past** maturity.
+
 ### Ledger Time Skew
 
 The ledger timestamp is observed by Soroban validators and may vary slightly between networks (e.g., testnet vs. mainnet). Always treat claim boundaries as integer seconds:

@@ -45,6 +45,7 @@ fn test_schema_v1_to_v2_additive_investor_yield_keys() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Fund normally (v1 path).
@@ -101,6 +102,7 @@ fn test_schema_v2_to_v3_additive_snapshot_and_caps() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -167,6 +169,7 @@ fn test_schema_v3_to_v4_additive_attestation_keys() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -247,6 +250,7 @@ fn test_schema_v4_to_v5_tiered_yield_and_registry() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // v5 feature: fund_with_commitment (tier selection).
@@ -300,6 +304,7 @@ fn test_schema_v5_to_v6_persistent_storage_requires_redeploy() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -369,6 +374,7 @@ fn test_migrate_error_codes_are_typed_and_consistent() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let current_version = client.get_version();
@@ -427,6 +433,7 @@ fn test_migrate_requires_admin_auth_before_version_checks() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -544,6 +551,7 @@ fn test_full_version_upgrade_matrix() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,

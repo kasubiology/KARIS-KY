@@ -41,6 +41,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Verify token cache was written
@@ -84,6 +85,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Get cached decimals
@@ -128,6 +130,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let cache = LiquifactEscrow::get_token_metadata_cache(env.clone());
@@ -159,6 +162,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let cache_before = LiquifactEscrow::get_token_metadata_cache(env.clone()).unwrap();
@@ -213,6 +217,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         // Non-admin attempt should fail
@@ -262,6 +267,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let cache_init = LiquifactEscrow::get_token_metadata_cache(env.clone()).unwrap();
@@ -313,6 +319,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let cache_init = LiquifactEscrow::get_token_metadata_cache(env.clone()).unwrap();
@@ -357,6 +364,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         let cache = LiquifactEscrow::get_token_metadata_cache(env.clone()).unwrap();
@@ -441,6 +449,7 @@ mod tests {
             &None,
             &None,
             &None,
+        &None,
         );
 
         client.fund(&investor, &TARGET as i128);

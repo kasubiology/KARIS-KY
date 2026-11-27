@@ -77,6 +77,7 @@ fn chaos_100_sequential_fund_calls_consistent_state() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let mut investors: std::vec::Vec<Address> = std::vec::Vec::with_capacity(100);
@@ -191,6 +192,7 @@ fn chaos_token_revert_mid_settlement_recovery() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     // Fund accounting-only (no real tokens yet).
@@ -256,6 +258,7 @@ fn chaos_ledger_sequence_jump_settlement_unaffected() {
         &Address::generate(&env),
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -345,6 +348,7 @@ fn chaos_ledger_clock_skew_claim_lock_respected() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let investor = Address::generate(&env);
@@ -417,6 +421,7 @@ fn chaos_simultaneous_fund_and_cancel_ordering() {
         &token_id,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,

@@ -312,3 +312,72 @@ If you encounter issues during snapshot/revert:
 - [ADR-002: Auth Boundaries](adr/ADR-002-auth-boundaries.md) — Role-based authorization
 - [OPERATOR_RUNBOOK.md](OPERATOR_RUNBOOK.md) — Full operational procedures
 - `escrow/src/lib.rs` — Implementation source code
+
+---
+
+## `import_state` fresh-instance requirement (issue #892)
+
+### Requirement
+
+`import_state` **must only be called on a freshly deployed, never-initialized
+contract instance.** The entrypoint rejects any call where `DataKey::Escrow`
+already exists in instance storage, returning `EscrowAlreadyInitialized`
+(error code 3).
+
+This guard is unconditional and fires regardless of the escrow's current status
+(open, funded, settled, withdrawn, or cancelled). The presence of
+`DataKey::Escrow` in storage is the only signal the contract checks.
+
+### Why this matters
+
+Allowing an import onto a live escrow would silently overwrite:
+
+- `funded_amount` and `funding_target` — breaking pro-rata payout math.
+- `status` — potentially unlocking or re-locking settlement flows.
+- Per-investor persistent state is **not** restored by `import_state`; if the
+  import succeeded on a live instance, the escrow state and investor
+  contributions would immediately be inconsistent.
+
+There is no on-chain mechanism to undo this once the import transaction
+confirms. The guard prevents the data loss entirely.
+
+### Error reference
+
+| Code | Constant | Condition |
+|---|---|---|
+| 3 | `EscrowAlreadyInitialized` | `import_state` called on an instance that already has `DataKey::Escrow` in storage |
+
+This reuses the same error code emitted by `init` when called twice, keeping
+the client error-handling surface minimal.
+
+### Test coverage
+
+`escrow/src/tests/import_state_fresh_instance.rs` contains the following tests
+(all always-on, non-ignored):
+
+| Test | Scenario | Expected outcome |
+|---|---|---|
+| `import_state_onto_initialized_instance_fails_with_already_initialized` | Init then import onto the same instance | Fails with `EscrowAlreadyInitialized` (3) |
+| `import_state_onto_funded_instance_is_rejected` | Import onto a funded (status 1) instance | Fails with `EscrowAlreadyInitialized` (3) |
+| `import_state_onto_settled_instance_is_rejected` | Import onto a settled (status 2) instance | Fails with `EscrowAlreadyInitialized` (3) |
+| `import_state_onto_fresh_instance_succeeds_and_get_escrow_reflects_snapshot` | Import onto a fresh instance | Succeeds; `get_escrow` matches the snapshot |
+| `import_state_restores_open_status_correctly` | Fresh import of an open snapshot | Status is 0 on the target |
+| `import_state_restores_legal_hold_flag` | Snapshot with legal hold active | Hold flag is true on the target |
+| `import_state_restores_funding_close_snapshot` | Snapshot with funded-close data | Funding-close snapshot matches on the target |
+| `second_import_onto_already_imported_instance_is_rejected` | Import, then import again on the same target | Fails with `EscrowAlreadyInitialized` (3) |
+
+### Deployment checklist
+
+Before calling `import_state` in production:
+
+1. **Deploy a brand-new contract instance** — do not reuse an existing contract id.
+2. **Do not call `init`** on the target before `import_state`.
+3. Verify the target has no stored escrow state:
+   ```bash
+   stellar contract invoke --id <TARGET_ID> -- get_escrow
+   # Expected: error EscrowNotInitialized (20) — confirms the instance is fresh
+   ```
+4. Only then call `import_state` with the validated export.
+
+See [`docs/escrow-state-export-import.md`](escrow-state-export-import.md) for
+the full step-by-step network migration procedure.

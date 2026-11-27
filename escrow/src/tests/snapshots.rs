@@ -222,6 +222,7 @@ fn test_snapshot_preserves_all_escrow_fields() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let snapshot_name = String::from_str(&env, "complex");

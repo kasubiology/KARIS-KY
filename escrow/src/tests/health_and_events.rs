@@ -41,6 +41,7 @@ fn test_health_metrics_zero_progress_after_init() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let metrics = client.get_escrow_health_metrics();
@@ -72,6 +73,7 @@ fn test_health_metrics_partial_funding() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -112,6 +114,7 @@ fn test_health_metrics_overfunded_caps_at_100() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -162,6 +165,7 @@ fn test_health_metrics_maturity_past() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let metrics = client.get_escrow_health_metrics();
@@ -191,6 +195,7 @@ fn test_health_metrics_multiple_investors() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -232,6 +237,7 @@ fn test_health_metrics_zero_maturity() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -537,6 +543,7 @@ fn test_bucketing_aggregate_matches_funded_amount() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     let mut total_bucketed: i128 = 0;
@@ -588,6 +595,7 @@ fn test_bucketing_cost_baseline_many_investors() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -647,6 +655,7 @@ fn test_bucketing_bucket_distribution_is_reasonably_uniform() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     for _i in 0..50 {
@@ -693,6 +702,7 @@ fn test_bucketing_refund_subtracts_from_bucket() {
         &token.id,
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -778,6 +788,7 @@ fn test_fund_received_event_emitted_on_fund() {
         &None,
         &None,
         &None,
+        &None,
     );
     client.fund(&investor, &500i128);
 
@@ -818,6 +829,7 @@ fn test_admin_changed_event_emitted_on_propose_and_accept() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -873,6 +885,7 @@ fn test_legal_hold_set_event_emitted() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     client.set_legal_hold(&true);
@@ -913,6 +926,7 @@ fn test_escrow_paused_event_emitted() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -971,6 +985,7 @@ fn test_fund_blocked_while_paused() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     client.set_escrow_paused(&true);
@@ -996,6 +1011,7 @@ fn test_settle_blocked_while_paused() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,
@@ -1029,6 +1045,7 @@ fn test_withdraw_blocked_while_paused() {
         &token.id,
         &None,
         &Address::generate(&env),
+        &None,
         &None,
         &None,
         &None,
@@ -1070,6 +1087,7 @@ fn test_claim_investor_payout_blocked_while_paused() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     client.fund(&investor, &1_000i128);
@@ -1103,6 +1121,7 @@ fn test_cancel_funding_blocked_while_paused() {
         &None,
         &None,
         &None,
+        &None,
     );
 
     client.set_escrow_paused(&true);
@@ -1126,6 +1145,7 @@ fn test_read_only_works_while_paused() {
         &token,
         &None,
         &treasury,
+        &None,
         &None,
         &None,
         &None,

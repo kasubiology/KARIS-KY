@@ -65,6 +65,7 @@ fn deploy_funded_settled<'a>(
         &None,
         &None,
         &None,
+        &None,
     );
     for (investor, amount) in contributions {
         client.fund(investor, amount);
@@ -304,6 +305,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         let mut prev_funded: i128 = 0;
@@ -345,6 +347,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         let mut running_sum: i128 = 0;
@@ -392,6 +395,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         let mut expected_contribution: i128 = 0;
@@ -435,6 +439,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         let mut rng = Rng64::new(seed);
@@ -497,6 +502,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
         prop_assert_eq!(escrow_init.status, 0);
 
@@ -541,6 +547,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         let after = client.fund(&investor, &contribution);
@@ -576,6 +583,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         // Partially fund (won't reach target)
@@ -620,6 +628,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         // Snapshot must not exist before any funding
@@ -702,6 +711,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         let fund_amount = target + excess;
@@ -755,6 +765,7 @@ proptest! {
             &None,
             &treasury,
             &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         let mut rng = Rng64::new(seed);
@@ -1023,6 +1034,7 @@ proptest! {
             &treasury,
             &Some(tiers),
             &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         // First investor uses commitment (tier yield); rest use base fund()
@@ -1141,15 +1153,8 @@ fn fuzz_funded_amount_equals_contribution_sum_100_cases() {
             &token,
             &None,
             &treasury,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
-            &None,
+            &None, &None, &None, &None, &None, &None, &None, &None, &None,
+        &None,
         );
 
         let max_each = (target / n as i128).max(1);
@@ -1323,14 +1328,7 @@ fn edge_no_contributions_zero_state() {
         &token,
         &None,
         &treasury,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
+        &None, &None, &None, &None, &None, &None, &None, &None, &None,
         &None,
     );
 
@@ -1377,14 +1375,7 @@ fn edge_exact_target_funding() {
         &token,
         &None,
         &treasury,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
+        &None, &None, &None, &None, &None, &None, &None, &None, &None,
         &None,
     );
 
@@ -1422,14 +1413,7 @@ fn edge_two_investors_second_crosses_target() {
         &token,
         &None,
         &treasury,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
+        &None, &None, &None, &None, &None, &None, &None, &None, &None,
         &None,
     );
 
@@ -1535,14 +1519,7 @@ fn edge_multi_call_same_investor_accumulates() {
         &token,
         &None,
         &treasury,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
-        &None,
+        &None, &None, &None, &None, &None, &None, &None, &None, &None,
         &None,
     );
 

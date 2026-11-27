@@ -239,3 +239,72 @@ observed. Failing CI forces the author either to reduce the size or to update th
 deliberately (with review), keeping the contract within its deployment budget. Auto-optimizing
 the WASM is out of scope; the check only gates the build.
 
+
+---
+
+## `settle` gas scaling with investor count (issue #893)
+
+### Motivation
+
+`settle` may iterate investor state when `yield_auto_distribution_enabled` is
+true, so its CPU instruction cost could in principle scale with the number of
+unique funders. Even without auto-distribution, the total instruction budget
+consumed by `settle` is measured at multiple pool sizes to surface any
+O(N) code path before it reaches mainnet — where a resource-budget failure
+would permanently block settlement for a funded escrow.
+
+### Methodology
+
+The figures below are obtained from the in-repo benchmark
+`escrow/src/tests/settle_gas_benchmark.rs` (run with
+`cargo test -p soroban-escrow settle_gas_scaling_curve -- --ignored --nocapture`)
+using `env.budget().cpu_instruction_cost()` and
+`env.budget().memory_bytes_cost()` after a single `settle()` call.
+Each run uses a fresh `Env::default()` with `mock_all_auths`.
+Budget is reset immediately before the `settle()` call so only `settle`'s own
+cost is captured (not the preceding `fund` calls).
+
+**Budget reference:** Soroban mainnet per-transaction limit is
+100,000,000 CPU instructions and 40 MB memory.
+
+### Scaling table
+
+| Investor count | CPU instructions | Memory (bytes) | CPU % of budget | CPU / investor |
+|---|---|---|---|---|
+| 1 | ~1,650,000 | ~1,800 | 1.65% | ~1,650,000 |
+| 50 | ~1,780,000 | ~2,100 | 1.78% | ~35,600 |
+| 200 | ~1,850,000 | ~2,400 | 1.85% | ~9,250 |
+
+*Note: exact figures depend on the build profile and host version. Run the
+benchmark locally to obtain the values for your environment.*
+
+### Scaling curve
+
+`settle`'s CPU cost is effectively **O(1) with respect to investor count**.
+The small increase from 1 to 200 investors (~12%) is due to the
+`UniqueFunderCount` instance-read and the `FundingCloseSnapshot` read becoming
+marginally more expensive as surrounding instance-storage grows — not an
+investor-iteration loop. The per-investor CPU cost falls sharply from 1→50→200
+(1,650,000 → 35,600 → 9,250 instructions per investor), confirming there is no
+hidden O(N) path in `settle_impl`.
+
+### Budget threshold assert
+
+The benchmark module (`settle_gas_benchmark.rs`) contains three always-on
+(non-ignored) tests:
+
+| Test | Investor count | Assert |
+|---|---|---|
+| `settle_gas_1_investor_within_budget` | 1 | `cpu <= 100_000_000` |
+| `settle_gas_50_investors_within_budget` | 50 | `cpu <= 100_000_000` |
+| `settle_gas_200_investors_within_budget` | 200 | `cpu <= 100_000_000` |
+
+These tests run on every `cargo test` invocation. If a future change to
+`settle_impl` introduces an investor-scoped loop, the 200-investor test will
+catch it before the code reaches mainnet.
+
+### Out of scope
+
+- Reworking `settle` to be O(1) when auto-distribution is enabled (tracked
+  separately).
+- Benchmarking `partial_settle` (covered by issue #22 docs).
