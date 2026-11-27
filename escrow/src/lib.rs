@@ -3064,6 +3064,15 @@ impl LiquifactEscrow {
             .unwrap_or(0)
     }
 
+    /// Helper: Check if automatic yield distribution is enabled for this escrow.
+    /// Returns `false` by default (backwards compatible).
+    fn yield_auto_distribution_enabled(env: &Env) -> bool {
+        env.storage()
+            .instance()
+            .get(&DataKey::YieldAutoDistributionEnabled)
+            .unwrap_or(false)
+    }
+
     /// Compute and return dashboard‑ready health metrics for the escrow.
     ///
     /// Read‑only — **no authorization required**. Intended for dashboards

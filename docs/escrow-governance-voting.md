@@ -18,6 +18,57 @@ Token holders vote on schema version upgrades before deployment. This provides:
 
 ---
 
+## Yield Distribution Governance
+
+### Automatic Yield Distribution Toggle
+
+Automatic yield distribution is controlled by **admin-only** entry points:
+
+- **`enable_yield_auto_distribution()`**: Enables pre-computation of yields at settlement time
+  - **Authorization:** Requires admin role (error 174 if unauthorized)
+  - **Idempotency:** Multiple calls are no-ops; enabling when already enabled succeeds silently
+  - **Effect:** When enabled, `settle()` captures a yield distribution snapshot for batch claims
+
+- **`disable_yield_auto_distribution()`**: Reverts to on-demand yield computation
+  - **Authorization:** Requires admin role (error 174 if unauthorized)
+  - **Idempotency:** Multiple calls are no-ops; disabling when already disabled succeeds silently
+  - **Effect:** When disabled, each `claim_investor_payout()` computes yield independently
+
+- **`is_yield_auto_dist_enabled()`**: Checks current auto-distribution state
+  - **Authorization:** None required (read-only)
+  - **Returns:** `true` if enabled, `false` by default (backwards-compatible)
+  - **Reflects current state:** Always returns the most recent toggle state
+
+### Governance Principle
+
+Auto-distribution state changes require admin authorization to prevent:
+- Non-admin actors from toggling costly settlement-time computations
+- Confusion about which yield model is active (pre-computed vs on-demand)
+- Race conditions during settlement
+
+### Error Codes
+
+| Code | Meaning | Context |
+|------|---------|---------|
+| 174  | `InsufficientAdminRole` | Caller lacks admin role for enable/disable |
+
+### Design Properties
+
+**Idempotency:** Calling enable/disable multiple times is safe. The state stabilizes:
+- `enable() → enable()` leaves state as enabled
+- `disable() → disable()` leaves state as disabled
+- No events or errors from redundant calls
+
+**No Ambiguity:** The toggle is explicit and immediately queryable:
+- State never enters an intermediate or uncertain phase
+- `is_yield_auto_dist_enabled()` always reflects the current setting
+
+**Backwards Compatibility:** Defaults to disabled (on-demand yield computation):
+- Existing escrows deployed without auto-distribution continue to work
+- Opt-in model: admins must explicitly enable for new behavior
+
+---
+
 ## Governance Model
 
 ### Actors
